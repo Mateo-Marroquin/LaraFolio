@@ -10,6 +10,10 @@ class Project extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $casts = [
+        'images' => 'array',
+    ];
+
     protected $fillable = [
         'user_id',
         'title',
