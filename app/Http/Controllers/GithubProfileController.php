@@ -91,6 +91,9 @@ class GithubProfileController extends Controller
             ]
         );
 
+        $repoController = new GithubRepositoryController();
+        $repoController->syncRepositories($profile->username);
+
         return redirect()->back()->with('status', 'profile-updated');
     }
 }
