@@ -55,4 +55,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(GithubRepository::class);
     }
+
+    public function repositoryLanguages(): HasMany
+    {
+        return $this->hasMany(RepositoryLanguages::class);
+    }
 }

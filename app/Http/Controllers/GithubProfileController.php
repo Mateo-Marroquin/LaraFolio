@@ -92,6 +92,11 @@ class GithubProfileController extends Controller
             ]
         );
 
+        $user = auth()->user();
+        $user->repositoryLanguages()->delete();
+        $user->githubRepositories()->delete();
+        $user->githubProfile()->delete();
+
         $repoController = new GithubRepositoryController();
         $repoController->syncRepositories($profile->username);
 
