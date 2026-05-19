@@ -7,23 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class GithubRepository extends Model
+class RepositoryLanguages extends Model
 {
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'user_id',
-        'github_repo_id',
+        'github_repository_id',
         'name',
-        'full_name',
-        'html_url',
-        'description',
-        'primary_language',
-        'stars_count',
-        'forks_count',
-        'is_fork',
-        'languages_url',
-        'github_updated_at',
+        'bytes',
     ];
 
     public function user(): BelongsTo
@@ -31,11 +23,8 @@ class GithubRepository extends Model
         return $this->belongsTo(User::class);
     }
 
-    protected function casts(): array
+    public function githubRepository(): BelongsTo
     {
-        return [
-            'is_fork' => 'boolean',
-            'github_updated_at' => 'timestamp',
-        ];
+        return $this->belongsTo(GithubRepository::class);
     }
 }

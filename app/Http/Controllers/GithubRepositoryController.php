@@ -98,6 +98,7 @@ class GithubRepositoryController extends Controller
                     'stars_count'       => $repo['stargazers_count'] ?? 0,
                     'forks_count'       => $repo['forks_count'] ?? 0,
                     'is_fork'           => $repo['fork'],
+                    'languages_url'     => $repo['languages_url'],
                     'github_updated_at' => Carbon::parse($repo['updated_at']),
                 ]
             );

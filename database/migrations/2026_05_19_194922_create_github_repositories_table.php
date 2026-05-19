@@ -20,6 +20,7 @@ return new class extends Migration {
             $table->integer('forks_count')->default(0);
             $table->boolean('is_fork')->default(false);
             $table->timestamp('github_updated_at')->nullable();
+            $table->string('languages_url');
             $table->timestamps();
             $table->softDeletes();
         });

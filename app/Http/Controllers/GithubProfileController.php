@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\GithubProfile;
+use App\Models\RepositoryLanguages;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -94,6 +95,8 @@ class GithubProfileController extends Controller
         $repoController = new GithubRepositoryController();
         $repoController->syncRepositories($profile->username);
 
+        $repoLanguageController = new RepositoryLanguagesController();
+        $repoLanguageController->getRepositoryLanguages();
         return redirect()->back()->with('status', 'profile-updated');
     }
 }
