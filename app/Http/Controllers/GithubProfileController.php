@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\GithubProfile;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class GithubProfileController extends Controller
 {
@@ -56,5 +58,39 @@ class GithubProfileController extends Controller
         $githubProfile->delete();
 
         return response()->json();
+    }
+
+    public function importProfile(Request $request)
+    {
+        $username = $request->input('username');
+        $response = Http::withHeaders([
+            'Accept' => 'application/vnd.github+json',
+        ])
+            ->withToken(config('services.github.token'))
+            ->get("https://api.github.com/users/{$username}");
+
+        if ($response->failed()) {
+            Log::error("Error al consultar usuario de GitHub: {$username}", ['status' => $response->status()]);
+            return response()->json(['error' => 'No se pudo obtener el perfil de GitHub'], $response->status());
+        }
+
+        $githubData = $response->json();
+
+        $profile = GithubProfile::updateOrCreate(
+            ['user_id' => auth()->user()->id],
+            [
+                'github_id' => $githubData['id'],
+                'user_id' => auth()->user()->id,
+                'username'     => $githubData['login'],
+                'name'         => $githubData['name'] ?? null,
+                'avatar_url'   => $githubData['avatar_url'] ?? null,
+                'bio'          => $githubData['bio'] ?? null,
+                'location'     => $githubData['location'] ?? null,
+                'public_repos' => $githubData['public_repos'] ?? 0,
+                'followers'    => $githubData['followers'] ?? 0,
+            ]
+        );
+
+        return redirect()->back()->with('status', 'profile-updated');
     }
 }

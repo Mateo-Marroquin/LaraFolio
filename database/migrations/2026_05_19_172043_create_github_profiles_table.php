@@ -9,6 +9,7 @@ return new class extends Migration {
     {
         Schema::create('github_profiles', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->nullable()->unique()->constrained()->onDelete('cascade');
             $table->string('github_id')->unique();
             $table->string('username')->unique();
             $table->string('name')->nullable();
