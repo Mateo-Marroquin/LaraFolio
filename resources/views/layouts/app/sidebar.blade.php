@@ -13,8 +13,11 @@
 
     <flux:sidebar.nav>
         <flux:sidebar.group :heading="__('Explora')" class="grid">
+            <flux:sidebar.item icon="home" :href="route('github-profile')" :current="request()->routeIs('github-profile')">
+                {{ __('Perfil') }}
+            </flux:sidebar.item>
             <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
+                {{ __('Repositorios') }}
             </flux:sidebar.item>
             <flux:sidebar.item icon="home" :href="route('metrics')" :current="request()->routeIs('metrics')">
                 {{ __('Métricas') }}
@@ -24,15 +27,15 @@
 
     <flux:spacer/>
 
-    <flux:sidebar.nav>
-        <flux:sidebar.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
-            {{ __('Repository') }}
-        </flux:sidebar.item>
+{{--    <flux:sidebar.nav>--}}
+{{--        <flux:sidebar.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">--}}
+{{--            {{ __('Repository') }}--}}
+{{--        </flux:sidebar.item>--}}
 
-        <flux:sidebar.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire" target="_blank">
-            {{ __('Documentation') }}
-        </flux:sidebar.item>
-    </flux:sidebar.nav>
+{{--        <flux:sidebar.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire" target="_blank">--}}
+{{--            {{ __('Documentation') }}--}}
+{{--        </flux:sidebar.item>--}}
+{{--    </flux:sidebar.nav>--}}
 
     <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name"/>
 </flux:sidebar>

@@ -13,7 +13,8 @@ class GithubProfileController extends Controller
 {
     public function index()
     {
-        return GithubProfile::all();
+        $profileInfo = GithubProfile::where('user_id', '=', auth()->user()->id)->first();
+        return view('profile', compact('profileInfo'));
     }
 
     public function store(Request $request)
