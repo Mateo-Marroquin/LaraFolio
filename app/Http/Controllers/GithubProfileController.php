@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\GithubProfile;
+use App\Models\GithubRepository;
 use App\Models\RepositoryLanguages;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -81,7 +82,6 @@ class GithubProfileController extends Controller
             ['user_id' => auth()->user()->id],
             [
                 'github_id' => $githubData['id'],
-                'user_id' => auth()->user()->id,
                 'username'     => $githubData['login'],
                 'name'         => $githubData['name'] ?? null,
                 'avatar_url'   => $githubData['avatar_url'] ?? null,
@@ -92,10 +92,8 @@ class GithubProfileController extends Controller
             ]
         );
 
-        $user = auth()->user();
-        $user->repositoryLanguages()->delete();
-        $user->githubRepositories()->delete();
-        $user->githubProfile()->delete();
+        GithubRepository::where('user_id', '=', auth()->user()->id)->delete();
+        RepositoryLanguages::where('user_id', '=', auth()->user()->id)->delete();
 
         $repoController = new GithubRepositoryController();
         $repoController->syncRepositories($profile->username);

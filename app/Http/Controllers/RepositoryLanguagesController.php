@@ -62,7 +62,7 @@ class RepositoryLanguagesController extends Controller
         $userId = auth()->id();
 
         foreach ($repositories as $repo) {
-            if (! $repo->languages_url) {
+            if (!$repo->languages_url) {
                 continue;
             }
 
@@ -77,12 +77,12 @@ class RepositoryLanguagesController extends Controller
 
                     RepositoryLanguages::updateOrCreate(
                         [
-                            'user_id'              => $userId,
+                            'user_id' => $userId,
                             'github_repository_id' => $repo->id,
-                            'name'                 => $languageName,
+                            'name' => $languageName,
                         ],
                         [
-                            'bytes'                => $bytesCount,
+                            'bytes' => $bytesCount,
                         ]
                     );
                 }
