@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\GithubActivity;
+use App\Models\UserProvider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
@@ -56,9 +57,26 @@ class GithubActivityController extends Controller
     public function syncGithubActivity($username)
     {
         try {
+            $token = config('services.github.token');
+            $url = "https://api.github.com/users/{$username}/events";
+
+            $userId = UserProvider::where('provider', 'github')
+                ->where('username', $username)
+                ->value('user_id');
+
+            if ($userId && auth()->check() && auth()->id() == $userId) {
+                $provider = auth()->user()->githubProvider ?? UserProvider::where('user_id', auth()->id())->where('provider', 'github')->first();
+                if ($provider) {
+                    $token = $provider->token;
+                    $url = "https://api.github.com/user/events";
+                }
+            }
+
             $response = Http::withHeaders(['Accept' => 'application/vnd.github+json',])
-                ->withToken(config('services.github.token'))
-                ->get("https://api.github.com/users/{$username}/events");
+                ->withToken($token)
+                ->get($url, [
+                    'per_page' => 100
+                ]);
 
             if ($response->successful()) {
                 $events = $response->json();
@@ -70,11 +88,13 @@ class GithubActivityController extends Controller
                         ['github_event_id' => $event['id']],
                         [
                             'username' => $username,
-                            'type'     => $event['type'],
-                            'date'     => $eventDate
+                            'type' => $event['type'],
+                            'date' => $eventDate
                         ]
                     );
                 }
+            } else {
+                Log::error("Fallo en API de eventos para {$username}. Status: " . $response->status());
             }
         } catch (\Exception $e) {
             Log::error("Error sincronizando actividad de GitHub para {$username}: " . $e->getMessage());

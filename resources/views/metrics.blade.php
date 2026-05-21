@@ -3,31 +3,29 @@
 
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-        <div class="grid gap-6 md:grid-cols-3">
+        <flux:card class="w-full space-y-4">
+            <div>
+                <flux:heading size="lg" level="2">{{ __('Distribución de Lenguajes') }}</flux:heading>
+                <flux:subheading>
+                    {{ __('Porcentaje de código real en tus repositorios') }}
+                    @if(isset($isOwner) && $isOwner)
+                        <span class="text-blue-500 font-medium ml-1">{{ __('(Incluye Proyectos Privados)') }}</span>
+                    @else
+                        <span class="text-zinc-500 ml-1">{{ __('(Solo Públicos)') }}</span>
+                    @endif
+                </flux:subheading>
+            </div>
 
-            <flux:card class="md:col-span-2 space-y-4">
-                <div>
-                    <flux:heading size="lg" level="2">{{ __('Distribución de Lenguajes') }}</flux:heading>
-                    <flux:subheading>{{ __('Porcentaje de código real en tus repositorios') }}</flux:subheading>
-                </div>
-
-                <div class="relative w-full h-[450px] flex justify-center">
-                    <canvas id="githubLanguagesChart"></canvas>
-                </div>
-            </flux:card>
-
-            <flux:card>
-                <flux:heading size="md">{{ __('Resumen Técnico') }}</flux:heading>
-                <p class="text-xs text-zinc-500 mt-2">
-                    {{ __('Los datos se calculan sumando el peso total en bytes de cada archivo fuente analizado por GitHub.') }}
-                </p>
-            </flux:card>
-        </div>
+            <div class="relative w-full h-[450px] flex justify-center">
+                <canvas id="githubLanguagesChart"></canvas>
+            </div>
+        </flux:card>
 
         <flux:card class="w-full space-y-4">
             <div>
                 <flux:heading size="lg" level="2">
-                    {{ __('Índice de Actividad Diaria') }} — <span class="capitalize text-blue-500">{{ $timelineChartData['monthName'] }}</span>
+                    {{ __('Índice de Actividad Diaria') }} — <span
+                        class="capitalize text-blue-500">{{ $timelineChartData['monthName'] }}</span>
                 </flux:heading>
                 <flux:subheading>{{ __('Cantidad de acciones realizadas en GitHub (Commits, Push, Pull Requests) ordenadas por día.') }}</flux:subheading>
             </div>
@@ -117,15 +115,15 @@
                             precision: 0,
                             color: document.documentElement.classList.contains('dark') ? '#a1a1aa' : '#71717a'
                         },
-                        grid: { color: document.documentElement.classList.contains('dark') ? '#27272a' : '#e4e4e7' }
+                        grid: {color: document.documentElement.classList.contains('dark') ? '#27272a' : '#e4e4e7'}
                     },
                     x: {
-                        ticks: { color: document.documentElement.classList.contains('dark') ? '#a1a1aa' : '#71717a' },
-                        grid: { display: false }
+                        ticks: {color: document.documentElement.classList.contains('dark') ? '#a1a1aa' : '#71717a'},
+                        grid: {display: false}
                     }
                 },
                 plugins: {
-                    legend: { display: false }
+                    legend: {display: false}
                 }
             }
         });

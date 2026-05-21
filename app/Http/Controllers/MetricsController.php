@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\GithubActivity;
 use App\Models\GithubProfile;
 use App\Models\RepositoryLanguages;
+use App\Models\UserProvider;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -17,24 +18,33 @@ class MetricsController extends Controller
         }
 
         if (!$username) {
-            return redirect()->route('welcome');
+            return redirect()->route('home');
         }
 
         $profileInfo = GithubProfile::where('username', $username)->first();
 
-        $languages = RepositoryLanguages::query()
+        $isOwner = auth()->check() && (
+                auth()->user()->githubProvider?->username === $username ||
+                UserProvider::where('user_id', auth()->id())->where('provider', 'github')->where('username', $username)->exists()
+            );
+
+        $languagesQuery = RepositoryLanguages::query()
             ->join('github_repositories', 'repository_languages.github_repository_id', '=', 'github_repositories.id')
             ->select('repository_languages.name', DB::raw('SUM(repository_languages.bytes) as total_bytes'))
-            ->where('github_repositories.full_name', 'like', $username . '/%')
-            ->groupBy('repository_languages.name')
+            ->where('github_repositories.full_name', 'like', $username . '/%');
+
+        if (!$isOwner) {
+            $languagesQuery->where('github_repositories.is_private', false);
+        }
+
+        $languages = $languagesQuery->groupBy('repository_languages.name')
             ->orderBy('total_bytes', 'desc')
             ->get();
 
         $chartData = [
             'labels' => $languages->pluck('name')->toArray(),
-            'data'   => $languages->pluck('total_bytes')->toArray(),
+            'data' => $languages->pluck('total_bytes')->toArray(),
         ];
-
 
         $now = Carbon::now();
         $startOfMonth = $now->copy()->startOfMonth()->toDateString();
@@ -59,22 +69,19 @@ class MetricsController extends Controller
             $currentDateString = "{$year}-{$month}-{$dayString}";
 
             $activityLabels[] = "Día " . $day;
-
             $activityValues[] = $activityData->get($currentDateString, 0);
         }
 
         $timelineChartData = [
             'labels' => $activityLabels,
-            'data'   => $activityValues,
+            'data' => $activityValues,
             'monthName' => $now->translatedFormat('F')
         ];
-        //dd($timelineChartData);
 
-        return view('metrics', compact('chartData', 'timelineChartData', 'username', 'profileInfo'));
+        return view('metrics', compact('chartData', 'timelineChartData', 'username', 'profileInfo', 'isOwner'));
     }
 
     public function showMetrics()
     {
-
     }
 }

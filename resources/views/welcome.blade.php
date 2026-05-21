@@ -19,7 +19,7 @@
     <flux:button
         variant="primary"
         icon="cloud-arrow-down"
-        href="#"
+        href="{{ route('auth.github.redirect') }}"
         class="shadow-sm"
     >
         {{ __('Iniciar sesión con GitHub') }}

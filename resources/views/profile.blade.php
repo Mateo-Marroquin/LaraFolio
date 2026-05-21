@@ -18,9 +18,10 @@
                                 {{ $profileInfo->name ?? $profileInfo->username }}
                             </flux:heading>
                             <flux:subheading class="font-mono">
-                                <a href="https://github.com/{{ $profileInfo->username }}" target="_blank" class="hover:underline flex items-center justify-center sm:justify-start gap-1">
+                                <a href="https://github.com/{{ $profileInfo->username }}" target="_blank"
+                                   class="hover:underline flex items-center justify-center sm:justify-start gap-1">
                                     @github {{ $profileInfo->username }}
-                                    <flux:icon.arrow-top-right-on-square variant="micro" class="text-zinc-400" />
+                                    <flux:icon.arrow-top-right-on-square variant="micro" class="text-zinc-400"/>
                                 </a>
                             </flux:subheading>
                         </div>
@@ -36,8 +37,9 @@
                     </div>
 
                     @if($profileInfo->location)
-                        <div class="flex items-center justify-center sm:justify-start gap-1.5 text-sm text-zinc-500 dark:text-zinc-400">
-                            <flux:icon.map-pin variant="mini" />
+                        <div
+                            class="flex items-center justify-center sm:justify-start gap-1.5 text-sm text-zinc-500 dark:text-zinc-400">
+                            <flux:icon.map-pin variant="mini"/>
                             <span>{{ $profileInfo->location }}</span>
                         </div>
                     @endif
@@ -48,26 +50,49 @@
                         </p>
                     @endif
 
-                    <flux:separator class="my-4" />
+                    <flux:separator class="my-4"/>
 
-                    <div class="grid grid-cols-2 gap-4 pt-2">
-                        <div class="bg-zinc-50 dark:bg-zinc-900 p-3 rounded-lg border border-zinc-200/60 dark:border-zinc-800/50 flex items-center gap-3">
+                    <div
+                        class="grid grid-cols-1 {{ isset($isOwner) && $isOwner ? 'sm:grid-cols-3' : 'sm:grid-cols-2' }} gap-4 pt-2">
+                        <div
+                            class="bg-zinc-50 dark:bg-zinc-900 p-3 rounded-lg border border-zinc-200/60 dark:border-zinc-800/50 flex items-center gap-3">
                             <div class="p-2 bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 rounded-md">
-                                <flux:icon.folder variant="mini" />
+                                <flux:icon.folder variant="mini"/>
                             </div>
                             <div>
-                                <flux:subheading size="sm" class="block">Repositorios públicos</flux:subheading>
-                                <span class="text-lg font-bold text-zinc-800 dark:text-zinc-100">{{ number_format($profileInfo->public_repos) }}</span>
+                                <flux:subheading size="sm"
+                                                 class="block">{{ __('Repositorios públicos') }}</flux:subheading>
+                                <span
+                                    class="text-lg font-bold text-zinc-800 dark:text-zinc-100">{{ number_format($profileInfo->public_repos) }}</span>
                             </div>
                         </div>
 
-                        <div class="bg-zinc-50 dark:bg-zinc-900 p-3 rounded-lg border border-zinc-200/60 dark:border-zinc-800/50 flex items-center gap-3">
-                            <div class="p-2 bg-purple-50 dark:bg-purple-950 text-purple-600 dark:text-purple-400 rounded-md">
-                                <flux:icon.users variant="mini" />
+                        {{-- 🌟 NUEVA TARJETA EXCLUSIVA PARA EL DUEÑO LOGUEADO --}}
+                        @if(isset($isOwner) && $isOwner)
+                            <div
+                                class="bg-zinc-50 dark:bg-zinc-900 p-3 rounded-lg border border-zinc-200/60 dark:border-zinc-800/50 flex items-center gap-3">
+                                <div class="p-2 bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-400 rounded-md">
+                                    <flux:icon.lock-closed variant="mini"/>
+                                </div>
+                                <div>
+                                    <flux:subheading size="sm"
+                                                     class="block">{{ __('Repos privados') }}</flux:subheading>
+                                    <span
+                                        class="text-lg font-bold text-zinc-800 dark:text-zinc-100">{{ number_format($privateReposCount) }}</span>
+                                </div>
+                            </div>
+                        @endif
+
+                        <div
+                            class="bg-zinc-50 dark:bg-zinc-900 p-3 rounded-lg border border-zinc-200/60 dark:border-zinc-800/50 flex items-center gap-3">
+                            <div
+                                class="p-2 bg-purple-50 dark:bg-purple-950 text-purple-600 dark:text-purple-400 rounded-md">
+                                <flux:icon.users variant="mini"/>
                             </div>
                             <div>
-                                <flux:subheading size="sm" class="block">Seguidores</flux:subheading>
-                                <span class="text-lg font-bold text-zinc-800 dark:text-zinc-100">{{ number_format($profileInfo->followers) }}</span>
+                                <flux:subheading size="sm" class="block">{{ __('Seguidores') }}</flux:subheading>
+                                <span
+                                    class="text-lg font-bold text-zinc-800 dark:text-zinc-100">{{ number_format($profileInfo->followers) }}</span>
                             </div>
                         </div>
                     </div>

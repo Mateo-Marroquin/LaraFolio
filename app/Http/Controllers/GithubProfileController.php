@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\GithubProfile;
 use App\Models\GithubRepository;
 use App\Models\RepositoryLanguages;
+use App\Models\UserProvider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -83,13 +84,13 @@ class GithubProfileController extends Controller
             ['user_id' => auth()->user()->id],
             [
                 'github_id' => $githubData['id'],
-                'username'     => $githubData['login'],
-                'name'         => $githubData['name'] ?? null,
-                'avatar_url'   => $githubData['avatar_url'] ?? null,
-                'bio'          => $githubData['bio'] ?? null,
-                'location'     => $githubData['location'] ?? null,
+                'username' => $githubData['login'],
+                'name' => $githubData['name'] ?? null,
+                'avatar_url' => $githubData['avatar_url'] ?? null,
+                'bio' => $githubData['bio'] ?? null,
+                'location' => $githubData['location'] ?? null,
                 'public_repos' => $githubData['public_repos'] ?? 0,
-                'followers'    => $githubData['followers'] ?? 0,
+                'followers' => $githubData['followers'] ?? 0,
             ]
         );
 
@@ -120,8 +121,8 @@ class GithubProfileController extends Controller
 
         if (!$profileInfo || $isOld) {
             $response = Http::withHeaders([
-                    'Accept' => 'application/vnd.github+json',
-                ])
+                'Accept' => 'application/vnd.github+json',
+            ])
                 ->withToken(config('services.github.token'))
                 ->get("https://api.github.com/users/{$username}");
 
@@ -135,23 +136,31 @@ class GithubProfileController extends Controller
             $profileInfo = GithubProfile::updateOrCreate(
                 ['username' => $githubData['login']],
                 [
-                    'github_id'    => $githubData['id'],
-                    'name'         => $githubData['name'] ?? null,
-                    'avatar_url'   => $githubData['avatar_url'] ?? null,
-                    'bio'          => $githubData['bio'] ?? null,
-                    'location'     => $githubData['location'] ?? null,
+                    'github_id' => $githubData['id'],
+                    'name' => $githubData['name'] ?? null,
+                    'avatar_url' => $githubData['avatar_url'] ?? null,
+                    'bio' => $githubData['bio'] ?? null,
+                    'location' => $githubData['location'] ?? null,
                     'public_repos' => $githubData['public_repos'] ?? 0,
-                    'followers'    => $githubData['followers'] ?? 0,
+                    'followers' => $githubData['followers'] ?? 0,
                 ]
             );
         }
 
-        return view('profile', compact('profileInfo', 'username'));
+        $isOwner = auth()->check() && (auth()->user()->githubProvider?->username === $username);
+        $privateReposCount = 0;
+
+        if ($isOwner) {
+            $privateReposCount = GithubRepository::where('user_id', auth()->id())
+                ->where('is_private', true)
+                ->count();
+        }
+
+        return view('profile', compact('profileInfo', 'username', 'isOwner', 'privateReposCount'));
     }
 
     public function showPublicProfile($username)
     {
-
         session(['active_search_username' => $username]);
         $profileInfo = GithubProfile::where('username', $username)->first();
         $isOld = $profileInfo && $profileInfo->updated_at->toDateTimeString() < now()->subDay()->toDateTimeString();
@@ -167,20 +176,33 @@ class GithubProfileController extends Controller
             $profileInfo = GithubProfile::updateOrCreate(
                 ['username' => $githubData['login']],
                 [
-                    'github_id'    => $githubData['id'],
-                    'name'         => $githubData['name'] ?? null,
-                    'avatar_url'   => $githubData['avatar_url'] ?? null,
-                    'bio'          => $githubData['bio'] ?? null,
-                    'location'     => $githubData['location'] ?? null,
+                    'github_id' => $githubData['id'],
+                    'name' => $githubData['name'] ?? null,
+                    'avatar_url' => $githubData['avatar_url'] ?? null,
+                    'bio' => $githubData['bio'] ?? null,
+                    'location' => $githubData['location'] ?? null,
                     'public_repos' => $githubData['public_repos'] ?? 0,
-                    'followers'    => $githubData['followers'] ?? 0,
-                    'email'        => $githubData['email'] ?? null,
+                    'followers' => $githubData['followers'] ?? 0,
+                    'email' => $githubData['email'] ?? null,
                 ]
             );
         }
+
         $activityCOntroller = new GithubActivityController();
         $activityCOntroller->syncGithubActivity($username);
 
-        return view('profile', compact('profileInfo', 'username'));
+        $isOwner = auth()->check() && (
+                auth()->user()->githubProvider?->username === $username ||
+                UserProvider::where('user_id', auth()->id())->where('provider', 'github')->where('username', $username)->exists()
+            );
+        $privateReposCount = 0;
+
+        if ($isOwner) {
+            $privateReposCount = GithubRepository::where('user_id', auth()->id())
+                ->where('is_private', true)
+                ->count();
+        }
+
+        return view('profile', compact('profileInfo', 'username', 'isOwner', 'privateReposCount'));
     }
 }

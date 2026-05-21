@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\RepositoryLanguages;
+use App\Models\UserProvider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -58,13 +59,21 @@ class RepositoryLanguagesController extends Controller
             return false;
         }
 
+        $token = config('services.github.token');
+        if ($userId) {
+            $provider = UserProvider::where('user_id', $userId)->where('provider', 'github')->first();
+            if ($provider) {
+                $token = $provider->token;
+            }
+        }
+
         foreach ($repositories as $repo) {
             if (!$repo->languages_url) {
                 continue;
             }
 
             $response = Http::withHeaders(['Accept' => 'application/vnd.github+json'])
-                ->withToken(config('services.github.token'))
+                ->withToken($token) // 🌟 Usamos el token dinámico
                 ->get($repo->languages_url);
 
             if ($response->successful()) {
@@ -94,21 +103,27 @@ class RepositoryLanguagesController extends Controller
             return false;
         }
 
+        $token = config('services.github.token');
+        if ($userId) {
+            $provider = UserProvider::where('user_id', $userId)->where('provider', 'github')->first();
+            if ($provider) {
+                $token = $provider->token;
+            }
+        }
+
         foreach ($repositories as $repo) {
             if (!$repo->languages_url) {
                 continue;
             }
 
             $response = Http::withHeaders(['Accept' => 'application/vnd.github+json'])
-                ->withToken(config('services.github.token'))
+                ->withToken($token)
                 ->get($repo->languages_url);
 
             if ($response->successful()) {
                 $languages = $response->json();
 
-                RepositoryLanguages::where('github_repository_id', $repo->id)
-                    ->where('user_id', $userId)
-                    ->delete();
+                RepositoryLanguages::where('github_repository_id', $repo->id)->delete();
 
                 foreach ($languages as $languageName => $bytesCount) {
                     RepositoryLanguages::create([

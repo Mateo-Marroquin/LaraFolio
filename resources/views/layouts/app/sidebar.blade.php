@@ -35,7 +35,7 @@
                     {{ __('Contactame') }}
                 </flux:sidebar.item>
 
-                <flux:sidebar.item icon="document" :href="route('public.resume.preview', $currentUsername)" :current="request()->routeIs('public.profile')">
+                <flux:sidebar.item icon="document" :href="route('public.resume.preview', $currentUsername)" :current="request()->routeIs('public.resume.preview')">
                     {{ __('Resumen PDF') }}
                 </flux:sidebar.item>
             @else

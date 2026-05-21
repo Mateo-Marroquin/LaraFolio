@@ -21,6 +21,7 @@ return new class extends Migration {
             $table->boolean('is_fork')->default(false);
             $table->timestamp('github_updated_at')->nullable();
             $table->string('languages_url');
+            $table->boolean('is_private');
             $table->timestamps();
             $table->softDeletes();
         });

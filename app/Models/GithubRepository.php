@@ -24,6 +24,7 @@ class GithubRepository extends Model
         'is_fork',
         'languages_url',
         'github_updated_at',
+        'is_private'
     ];
 
     public function user(): BelongsTo
@@ -35,6 +36,7 @@ class GithubRepository extends Model
     {
         return [
             'is_fork' => 'boolean',
+            'is_private' => 'boolean',
             'github_updated_at' => 'timestamp',
         ];
     }

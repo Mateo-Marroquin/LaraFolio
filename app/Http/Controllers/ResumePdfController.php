@@ -6,6 +6,7 @@ use App\Models\GithubActivity;
 use App\Models\GithubProfile;
 use App\Models\RepositoryLanguages;
 use App\Models\GithubRepository;
+use App\Models\UserProvider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -17,13 +18,31 @@ class ResumePdfController extends Controller
     {
         $profileInfo = GithubProfile::where('username', $username)->firstOrFail();
 
-        $repositories = GithubRepository::where('full_name', 'like', $username . '/%')->get();
+        $isOwner = auth()->check() && (
+                auth()->user()->githubProvider?->username === $username ||
+                UserProvider::where('user_id', auth()->id())->where('provider', 'github')->where('username', $username)->exists()
+            );
 
-        $languages = RepositoryLanguages::query()
+        $userId = $isOwner ? auth()->id() : UserProvider::where('provider', 'github')->where('username', $username)->value('user_id');
+
+        $repoQuery = GithubRepository::where('user_id', $userId)
+            ->where('full_name', 'like', $username . '/%');
+
+        if (!$isOwner) {
+            $repoQuery->where('is_private', false);
+        }
+        $repositories = $repoQuery->get();
+
+        $languagesQuery = RepositoryLanguages::query()
             ->join('github_repositories', 'repository_languages.github_repository_id', '=', 'github_repositories.id')
             ->select('repository_languages.name', DB::raw('SUM(repository_languages.bytes) as total_bytes'))
-            ->where('github_repositories.full_name', 'like', $username . '/%')
-            ->groupBy('repository_languages.name')
+            ->where('github_repositories.full_name', 'like', $username . '/%');
+
+        if (!$isOwner) {
+            $languagesQuery->where('github_repositories.is_private', false); // 🛡️ Ocultar bytes privados si es invitado
+        }
+
+        $languages = $languagesQuery->groupBy('repository_languages.name')
             ->orderBy('total_bytes', 'desc')
             ->get();
 
@@ -93,17 +112,18 @@ class ResumePdfController extends Controller
         ];
         $quickChartLine = "https://quickchart.io/chart?w=550&h=200&c=" . urlencode(json_encode($lineConfig));
 
-
+        $repoLabel = $isOwner ? 'Repositorios Totales:' : 'Repositorios Públicos:';
 
         $data = [
-            'profileInfo'   => $profileInfo,
-            'repositories'  => $repositories,
-            'languages'     => $languages,
+            'profileInfo' => $profileInfo,
+            'repositories' => $repositories,
+            'languages' => $languages,
             'quickChartUrl' => $quickChartUrl,
-            'lineChartUrl'  => $quickChartLine,
-            'username'      => $username,
-            'monthName'     => $now->translatedFormat('F'),
-            'date'          => now()->format('d/m/Y')
+            'lineChartUrl' => $quickChartLine,
+            'username' => $username,
+            'monthName' => $now->translatedFormat('F'),
+            'date' => now()->format('d/m/Y'),
+            'repoLabel' => $repoLabel // 🌟 Pasado al arreglo de la vista
         ];
 
         $pdf = Pdf::loadView('pdf.resume', $data)
@@ -115,22 +135,32 @@ class ResumePdfController extends Controller
         return $pdf->download("Resumen_GitHub_{$username}.pdf");
     }
 
-
-
     public function showPreview($username)
     {
         $profileInfo = GithubProfile::where('username', $username)->firstOrFail();
 
-        $repositoriesCount = GithubRepository::where('full_name', 'like', $username . '/%')->count();
+        $isOwner = auth()->check() && (
+                auth()->user()->githubProvider?->username === $username ||
+                UserProvider::where('user_id', auth()->id())->where('provider', 'github')->where('username', $username)->exists()
+            );
+        $userId = $isOwner ? auth()->id() : UserProvider::where('provider', 'github')->where('username', $username)->value('user_id');
 
-        $languagesCount = RepositoryLanguages::query()
+        $repoQuery = GithubRepository::where('user_id', $userId)->where('full_name', 'like', $username . '/%');
+        if (!$isOwner) {
+            $repoQuery->where('is_private', false);
+        }
+        $repositoriesCount = $repoQuery->count();
+
+        $languagesQuery = RepositoryLanguages::query()
             ->join('github_repositories', 'repository_languages.github_repository_id', '=', 'github_repositories.id')
-            ->where('github_repositories.full_name', 'like', $username . '/%')
-            ->distinct('repository_languages.name')
-            ->count();
+            ->where('github_repositories.full_name', 'like', $username . '/%');
+        if (!$isOwner) {
+            $languagesQuery->where('github_repositories.is_private', false);
+        }
+        $languagesCount = $languagesQuery->distinct('repository_languages.name')->count();
+
         $date = now()->format('d/m/Y');
 
         return view('resume-preview', compact('username', 'profileInfo', 'repositoriesCount', 'languagesCount'));
     }
-
 }
