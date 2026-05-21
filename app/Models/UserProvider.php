@@ -7,22 +7,24 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class GithubProfile extends Model
+class UserProvider extends Model
 {
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'github_id',
-        'username',
-        'name',
-        'avatar_url',
-        'bio',
-        'location',
-        'public_repos',
-        'followers',
         'user_id',
-        'email'
+        'provider',
+        'provider_id',
+        'token',
+        'username',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'token' => 'encrypted',
+        ];
+    }
 
     public function user(): BelongsTo
     {

@@ -60,4 +60,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(RepositoryLanguages::class);
     }
+
+
+    public function githubProvider()
+    {
+        return $this->hasOne(UserProvider::class)->where('provider', 'github');
+    }
 }

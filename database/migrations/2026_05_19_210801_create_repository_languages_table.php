@@ -9,7 +9,7 @@ return new class extends Migration {
     {
         Schema::create('repository_languages', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
             $table->foreignId('github_repository_id')->constrained()->onDelete('cascade');
             $table->string('name');
             $table->unsignedBigInteger('bytes');

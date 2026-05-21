@@ -67,12 +67,20 @@ class GithubRepositoryController extends Controller
         return response()->json();
     }
 
-    public function syncRepositories($username)
+    public function syncRepositories($username, $userId = null)
     {
+        $token = config('services.github.token');
+        if ($userId && auth()->check() && auth()->id() == $userId) {
+            $provider = auth()->user()->githubProvider;
+            if ($provider) {
+                $token = $provider->token;
+            }
+        }
+
         $response = Http::withHeaders([
                 'Accept' => 'application/vnd.github+json',
             ])
-            ->withToken(config('services.github.token'))
+            ->withToken($token)
             ->get("https://api.github.com/users/{$username}/repos", [
                 'per_page' => 100,
                 'sort' => 'updated'
@@ -80,16 +88,19 @@ class GithubRepositoryController extends Controller
 
         if ($response->failed()) {
             Log::error("Fallo al consultar repositorios de GitHub para: {$username}", ['status' => $response->status()]);
-            return response()->json(['error' => 'No se pudieron obtener los repositorios de GitHub'], $response->status());
+            return false;
         }
 
         $repositories = $response->json();
 
         foreach ($repositories as $repo) {
             GithubRepository::updateOrCreate(
-                ['github_repo_id' => $repo['id'], 'user_id' => auth()->user()->id],
                 [
-                    'user_id'           => auth()->user()->id,
+                    'github_repo_id' => $repo['id'],
+                    'user_id'        => $userId
+                ],
+                [
+                    'user_id'           => $userId,
                     'name'              => $repo['name'],
                     'full_name'         => $repo['full_name'],
                     'html_url'          => $repo['html_url'],
@@ -104,10 +115,32 @@ class GithubRepositoryController extends Controller
             );
         }
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Repositorios sincronizados correctamente',
-            'total_imported' => count($repositories)
-        ]);
+        $savedRepositories = GithubRepository::where('user_id', $userId)
+            ->where('full_name', 'like', $username . '/%')
+            ->get();
+
+        $languageController = new RepositoryLanguagesController();
+        $languageController->syncLanguagesForRepositories($savedRepositories, $userId);
+
+        return true;
+    }
+
+    public function showPublicRepositories($username)
+    {
+        $repositories = GithubRepository::where('user_id', null)
+            ->where('full_name', 'like', $username . '/%')
+            ->get();
+
+        if ($repositories->isEmpty()) {
+            $synced = $this->syncRepositories($username, null);
+
+            if ($synced) {
+                $repositories = GithubRepository::where('user_id', null)
+                    ->where('full_name', 'like', $username . '/%')
+                    ->get();
+            }
+        }
+
+        return view('dashboard', compact('repositories', 'username'));
     }
 }

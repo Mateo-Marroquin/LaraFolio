@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\RepositoryLanguages;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class RepositoryLanguagesController extends Controller
 {
@@ -51,15 +52,11 @@ class RepositoryLanguagesController extends Controller
         return response()->json();
     }
 
-    public function getRepositoryLanguages()
+    public function getRepositoryLanguages($repositories, $userId = null)
     {
-        $repositories = auth()->user()->githubRepositories;
-
         if ($repositories->isEmpty()) {
-            return response()->json(['message' => 'No hay repositorios que procesar.'], 200);
+            return false;
         }
-
-        $userId = auth()->id();
 
         foreach ($repositories as $repo) {
             if (!$repo->languages_url) {
@@ -74,7 +71,6 @@ class RepositoryLanguagesController extends Controller
                 $languages = $response->json();
 
                 foreach ($languages as $languageName => $bytesCount) {
-
                     RepositoryLanguages::updateOrCreate(
                         [
                             'user_id' => $userId,
@@ -89,9 +85,44 @@ class RepositoryLanguagesController extends Controller
             }
         }
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Todos los lenguajes por repositorio han sido guardados y actualizados correctamente.'
-        ]);
+        return true;
+    }
+
+    public function syncLanguagesForRepositories($repositories, $userId = null)
+    {
+        if ($repositories->isEmpty()) {
+            return false;
+        }
+
+        foreach ($repositories as $repo) {
+            if (!$repo->languages_url) {
+                continue;
+            }
+
+            $response = Http::withHeaders(['Accept' => 'application/vnd.github+json'])
+                ->withToken(config('services.github.token'))
+                ->get($repo->languages_url);
+
+            if ($response->successful()) {
+                $languages = $response->json();
+
+                RepositoryLanguages::where('github_repository_id', $repo->id)
+                    ->where('user_id', $userId)
+                    ->delete();
+
+                foreach ($languages as $languageName => $bytesCount) {
+                    RepositoryLanguages::create([
+                        'user_id' => $userId,
+                        'github_repository_id' => $repo->id,
+                        'name' => $languageName,
+                        'bytes' => $bytesCount,
+                    ]);
+                }
+            } else {
+                Log::error("Error al consultar lenguajes del repositorio ID {$repo->id}: " . $response->status());
+            }
+        }
+
+        return true;
     }
 }

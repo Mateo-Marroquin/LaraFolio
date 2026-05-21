@@ -103,4 +103,82 @@ class GithubProfileController extends Controller
         $repoLanguageController->getRepositoryLanguages();
         return redirect()->back()->with('status', 'profile-updated');
     }
+
+    public function searchPublicProfile(Request $request)
+    {
+        $username = trim($request->input('username'));
+
+        if (empty($username)) {
+            return redirect()->route('home');
+        }
+
+        session(['active_search_username' => $username]);
+
+        $profileInfo = GithubProfile::where('username', $username)->first();
+
+        $isOld = $profileInfo && $profileInfo->updated_at->toDateTimeString() < now()->subDay()->toDateTimeString();
+
+        if (!$profileInfo || $isOld) {
+            $response = Http::withHeaders([
+                    'Accept' => 'application/vnd.github+json',
+                ])
+                ->withToken(config('services.github.token'))
+                ->get("https://api.github.com/users/{$username}");
+
+            if ($response->failed()) {
+                Log::error("Error público al consultar usuario de GitHub: {$username}", ['status' => $response->status()]);
+                return redirect()->route('home')->with('error', 'No se pudo encontrar ese usuario en GitHub.');
+            }
+
+            $githubData = $response->json();
+
+            $profileInfo = GithubProfile::updateOrCreate(
+                ['username' => $githubData['login']],
+                [
+                    'github_id'    => $githubData['id'],
+                    'name'         => $githubData['name'] ?? null,
+                    'avatar_url'   => $githubData['avatar_url'] ?? null,
+                    'bio'          => $githubData['bio'] ?? null,
+                    'location'     => $githubData['location'] ?? null,
+                    'public_repos' => $githubData['public_repos'] ?? 0,
+                    'followers'    => $githubData['followers'] ?? 0,
+                ]
+            );
+        }
+
+        return view('profile', compact('profileInfo', 'username'));
+    }
+
+    public function showPublicProfile($username)
+    {
+
+        session(['active_search_username' => $username]);
+        $profileInfo = GithubProfile::where('username', $username)->first();
+        $isOld = $profileInfo && $profileInfo->updated_at->toDateTimeString() < now()->subDay()->toDateTimeString();
+
+        if (!$profileInfo || $isOld) {
+            $response = Http::withHeaders(['Accept' => 'application/vnd.github+json'])
+                ->withToken(config('services.github.token'))
+                ->get("https://api.github.com/users/{$username}");
+
+            if ($response->failed()) return redirect()->route('home')->with('error', 'Usuario no encontrado.');
+
+            $githubData = $response->json();
+            $profileInfo = GithubProfile::updateOrCreate(
+                ['username' => $githubData['login']],
+                [
+                    'github_id'    => $githubData['id'],
+                    'name'         => $githubData['name'] ?? null,
+                    'avatar_url'   => $githubData['avatar_url'] ?? null,
+                    'bio'          => $githubData['bio'] ?? null,
+                    'location'     => $githubData['location'] ?? null,
+                    'public_repos' => $githubData['public_repos'] ?? 0,
+                    'followers'    => $githubData['followers'] ?? 0,
+                    'email'        => $githubData['email'] ?? null,
+                ]
+            );
+        }
+
+        return view('profile', compact('profileInfo', 'username'));
+    }
 }
