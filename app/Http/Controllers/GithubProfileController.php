@@ -178,6 +178,8 @@ class GithubProfileController extends Controller
                 ]
             );
         }
+        $activityCOntroller = new GithubActivityController();
+        $activityCOntroller->syncGithubActivity($username);
 
         return view('profile', compact('profileInfo', 'username'));
     }

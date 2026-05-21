@@ -11,84 +11,73 @@
             margin: 0;
             padding: 0;
         }
-
         .header {
             border-bottom: 2px solid #0284c7;
-            padding-bottom: 15px;
-            margin-bottom: 25px;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
         }
-
         .title {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: bold;
             color: #0f172a;
             margin: 0;
         }
-
         .subtitle {
-            font-size: 13px;
+            font-size: 12px;
             color: #64748b;
             margin: 4px 0 0 0;
         }
-
         .meta-table {
             width: 100%;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
-
         .meta-td {
-            font-size: 14px;
+            font-size: 13px;
             vertical-align: top;
         }
-
         .section-title {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
             color: #0284c7;
             border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 5px;
-            margin-bottom: 15px;
+            padding-bottom: 4px;
+            margin-bottom: 12px;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-
         .repo-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
-
         .repo-table th {
             background-color: #f1f5f9;
             color: #475569;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
             text-align: left;
-            padding: 8px;
+            padding: 6px;
             border: 1px solid #e2e8f0;
         }
-
         .repo-table td {
-            font-size: 12px;
-            padding: 8px;
+            font-size: 11px;
+            padding: 6px;
             border: 1px solid #e2e8f0;
             vertical-align: top;
         }
-
-        .chart-box {
+        .chart-container {
             text-align: center;
-            margin-top: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
-
         .footer {
             position: absolute;
             bottom: 0;
             width: 100%;
             text-align: center;
-            font-size: 10px;
+            font-size: 9px;
             color: #94a3b8;
             border-top: 1px solid #e2e8f0;
-            padding-top: 10px;
+            padding-top: 8px;
         }
     </style>
 </head>
@@ -99,10 +88,10 @@
         <tr>
             <td>
                 <h1 class="title">LaraFolio - Resumen Técnico</h1>
-                <p class="subtitle">Análisis automatizado de perfil de desarrollador</p>
+                <p class="subtitle">Análisis automatizado de rendimiento de código</p>
             </td>
-            <td style="text-align: right; font-size: 12px; color: #64748b;">
-                <strong>Fecha de generación:</strong> {{ $date }}
+            <td style="text-align: right; font-size: 11px; color: #64748b;">
+                <strong>Generado:</strong> {{ $date }}
             </td>
         </tr>
     </table>
@@ -111,31 +100,29 @@
 <table class="meta-table">
     <tr>
         <td class="meta-td" width="60%">
-            <h2 style="margin:0 0 8px 0; font-size: 18px; color:#0f172a;">{{ $profileInfo->name ?? $username }}</h2>
-            <p style="margin:0 0 5px 0;"><strong>Usuario de GitHub:</strong> {{ $username }}</p>
+            <h2 style="margin:0 0 6px 0; font-size: 16px; color:#0f172a;">{{ $profileInfo->name ?? $username }}</h2>
+            <p style="margin:0 0 4px 0;"><strong>Usuario de GitHub:</strong> {{ $username }}</p>
             @if($profileInfo->bio)
-                <p style="margin:5px 0 0 0; font-size: 13px; color:#475569; font-style: italic;">
-                    "{{ $profileInfo->bio }}"</p>
+                <p style="margin:4px 0 0 0; font-size: 12px; color:#475569; font-style: italic;">"{{ $profileInfo->bio }}"</p>
             @endif
         </td>
-        <td class="meta-td" width="40%" style="background-color: #fafafa; padding: 12px; border-radius: 8px;">
-            <p style="margin: 0 0 6px 0;"><strong>Repositorios Públicos:</strong> {{ $repositories->count() }}</p>
-            <p style="margin: 0 0 6px 0;"><strong>Estrellas Acumuladas:</strong> {{ $repositories->sum('stars_count') }}
-            </p>
+        <td class="meta-td" width="40%" style="background-color: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #f1f5f9;">
+            <p style="margin: 0 0 4px 0;"><strong>Repositorios Públicos:</strong> {{ $repositories->count() }}</p>
+            <p style="margin: 0 0 4px 0;"><strong>Estrellas Totales:</strong> {{ $repositories->sum('stars_count') }}</p>
             <p style="margin: 0;"><strong>Forks Totales:</strong> {{ $repositories->sum('forks_count') }}</p>
         </td>
     </tr>
 </table>
 
-<div class="section-title">Distribución de Lenguajes (Código Fuente)</div>
-<table width="100%" style="margin-bottom: 20px;">
+<div class="section-title">Distribución de Lenguajes (Bytes de código)</div>
+<table width="100%" style="margin-bottom: 15px;">
     <tr>
-        <td width="55%" class="chart-box">
-            <img src="{{ $quickChartUrl }}" width="350" alt="Gráfica de Lenguajes">
+        <td width="50%" class="chart-container">
+            <img src="{{ $quickChartUrl }}" width="280" alt="Dona de Lenguajes">
         </td>
-        <td width="45%" style="vertical-align: middle;">
-            <table width="100%" style="font-size: 12px; border-spacing: 0 6px;">
-                @foreach($languages->take(6) as $lang)
+        <td width="50%" style="vertical-align: middle; padding-left: 10px;">
+            <table width="100%" style="font-size: 11px; border-spacing: 0 4px;">
+                @foreach($languages->take(5) as $lang)
                     <tr>
                         <td style="font-weight: bold; color:#334155;">{{ $lang->name }}</td>
                         <td style="text-align: right; color:#64748b;">
@@ -152,28 +139,36 @@
     </tr>
 </table>
 
-<div class="section-title">Catálogo de Repositorios Analizados</div>
+<div class="section-title">Ritmo de Actividad Diaria — <span style="text-transform: capitalize;">{{ $monthName }}</span></div>
+<div class="chart-container" style="margin-bottom: 25px;">
+    <p style="font-size: 11px; color:#64748b; margin: 0 0 8px 0; text-align: left;">
+        Frecuencia de interacciones y contribuciones directas registradas por día del mes en los servidores de GitHub.
+    </p>
+    <img src="{{ $lineChartUrl }}" width="520" alt="Línea de Actividad">
+</div>
+
+<div class="section-title">Proyectos Destacados Analizados</div>
 <table class="repo-table">
     <thead>
     <tr>
-        <th width="30%">Nombre del Proyecto</th>
+        <th width="30%">Repositorio</th>
         <th width="50%">Descripción</th>
         <th width="20%">Lenguaje Principal</th>
     </tr>
     </thead>
     <tbody>
-    @foreach($repositories->sortByDesc('github_updated_at')->take(8) as $repo)
-        <tr>
-            <td style="font-weight: bold; color: #0f172a;">{{ $repo->name }}</td>
-            <td style="color: #475569;">{{ $repo->description ?? 'Sin descripción disponible.' }}</td>
-            <td style="color: #0284c7; font-weight: 500;">{{ $repo->primary_language ?? 'N/A' }}</td>
-        </tr>
+    @foreach($repositories->sortByDesc('github_updated_at')->take(4) as $repo) {{-- Bajamos a 4 para que todo quepa perfecto en una o dos páginas sin desbordar --}}
+    <tr>
+        <td style="font-weight: bold; color: #0f172a;">{{ $repo->name }}</td>
+        <td style="color: #475569;">{{ $repo->description ?? 'Sin descripción disponible.' }}</td>
+        <td style="color: #0284c7; font-weight: 500;">{{ $repo->primary_language ?? 'N/A' }}</td>
+    </tr>
     @endforeach
     </tbody>
 </table>
 
 <div class="footer">
-    Reporte analítico generado de manera automática por LaraFolio. San Luis Potosí, México.
+    Reporte analítico confidencial automatizado por LaraFolio. San Luis Potosí, México.
 </div>
 
 </body>

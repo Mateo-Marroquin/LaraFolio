@@ -11,7 +11,7 @@
                     <flux:subheading>{{ __('Porcentaje de código real en tus repositorios') }}</flux:subheading>
                 </div>
 
-                <div class="relative w-full h-[600px] flex justify-center">
+                <div class="relative w-full h-[450px] flex justify-center">
                     <canvas id="githubLanguagesChart"></canvas>
                 </div>
             </flux:card>
@@ -24,10 +24,23 @@
             </flux:card>
         </div>
 
+        <flux:card class="w-full space-y-4">
+            <div>
+                <flux:heading size="lg" level="2">
+                    {{ __('Índice de Actividad Diaria') }} — <span class="capitalize text-blue-500">{{ $timelineChartData['monthName'] }}</span>
+                </flux:heading>
+                <flux:subheading>{{ __('Cantidad de acciones realizadas en GitHub (Commits, Push, Pull Requests) ordenadas por día.') }}</flux:subheading>
+            </div>
+            <div class="relative w-full h-[300px]">
+                <canvas id="githubTimelineChart"></canvas>
+            </div>
+        </flux:card>
+
     </div>
 
     <script>
         const chartData = @json($chartData);
+        const timelineData = @json($timelineChartData);
 
         const ctx = document.getElementById('githubLanguagesChart').getContext('2d');
 
@@ -72,6 +85,47 @@
                             }
                         }
                     }
+                }
+            }
+        });
+
+        const ctxTimeline = document.getElementById('githubTimelineChart').getContext('2d');
+        new Chart(ctxTimeline, {
+            type: 'line',
+            data: {
+                labels: timelineData.labels,
+                datasets: [{
+                    label: 'Acciones de Desarrollo',
+                    data: timelineData.data,
+                    borderColor: '#0ea5e9',
+                    backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                    fill: true,
+                    tension: 0.3,
+                    borderWidth: 3,
+                    pointBackgroundColor: '#0ea5e9',
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0,
+                            color: document.documentElement.classList.contains('dark') ? '#a1a1aa' : '#71717a'
+                        },
+                        grid: { color: document.documentElement.classList.contains('dark') ? '#27272a' : '#e4e4e7' }
+                    },
+                    x: {
+                        ticks: { color: document.documentElement.classList.contains('dark') ? '#a1a1aa' : '#71717a' },
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
                 }
             }
         });

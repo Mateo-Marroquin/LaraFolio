@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\GithubActivity;
 use App\Models\GithubProfile;
 use App\Models\RepositoryLanguages;
 use App\Models\GithubRepository;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -43,12 +45,64 @@ class ResumePdfController extends Controller
 
         $quickChartUrl = "https://quickchart.io/chart?w=400&h=300&c=" . urlencode(json_encode($chartConfig));
 
+        $now = Carbon::now();
+        $startOfMonth = $now->copy()->startOfMonth()->toDateString();
+        $endOfMonth = $now->copy()->endOfMonth()->toDateString();
+        $daysInMonth = $now->daysInMonth;
+
+        $activityData = GithubActivity::where('username', $username)
+            ->whereBetween('date', [$startOfMonth, $endOfMonth])
+            ->select(DB::raw('DATE(date) as clean_date'), DB::raw('count(*) as total'))
+            ->groupBy('clean_date')
+            ->get()
+            ->pluck('total', 'clean_date');
+
+        $activityLabels = [];
+        $activityValues = [];
+        $year = $now->year;
+        $month = sprintf('%02d', $now->month);
+
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $dayString = sprintf('%02d', $day);
+            $currentDateString = "{$year}-{$month}-{$dayString}";
+            $activityLabels[] = strval($day);
+            $activityValues[] = $activityData->get($currentDateString, 0);
+        }
+
+        $lineConfig = [
+            'type' => 'line',
+            'data' => [
+                'labels' => $activityLabels,
+                'datasets' => [[
+                    'label' => 'Acciones',
+                    'data' => $activityValues,
+                    'borderColor' => '#0ea5e9',
+                    'backgroundColor' => 'rgba(14, 165, 233, 0.1)',
+                    'fill' => true,
+                    'tension' => 0.3,
+                    'borderWidth' => 2,
+                    'pointRadius' => 2
+                ]]
+            ],
+            'options' => [
+                'plugins' => ['legend' => ['display' => false]],
+                'scales' => [
+                    'y' => ['beginAtZero' => true, 'ticks' => ['precision' => 0]]
+                ]
+            ]
+        ];
+        $quickChartLine = "https://quickchart.io/chart?w=550&h=200&c=" . urlencode(json_encode($lineConfig));
+
+
+
         $data = [
             'profileInfo'   => $profileInfo,
             'repositories'  => $repositories,
             'languages'     => $languages,
             'quickChartUrl' => $quickChartUrl,
+            'lineChartUrl'  => $quickChartLine,
             'username'      => $username,
+            'monthName'     => $now->translatedFormat('F'),
             'date'          => now()->format('d/m/Y')
         ];
 
@@ -74,6 +128,7 @@ class ResumePdfController extends Controller
             ->where('github_repositories.full_name', 'like', $username . '/%')
             ->distinct('repository_languages.name')
             ->count();
+        $date = now()->format('d/m/Y');
 
         return view('resume-preview', compact('username', 'profileInfo', 'repositoriesCount', 'languagesCount'));
     }
