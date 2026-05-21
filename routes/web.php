@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\GithubRepositoryController;
+use App\Http\Controllers\ResumePdfController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GithubProfileController;
 use App\Http\Controllers\MetricsController;
@@ -25,6 +26,12 @@ Route::get('/user/{username}/metrics', [MetricsController::class, 'index'])->nam
 Route::get('/user/{username}/contact', [ContactController::class, 'show'])->name('public.contact');
 
 Route::post('/user/{username}/contact', [ContactController::class, 'send'])->name('public.contact.send');
+
+//Route::get('/user/{username}/download-pdf', [ResumePdfController::class, 'download'])->name('public.download.pdf');
+
+Route::get('/user/{username}/resume', [ResumePdfController::class, 'showPreview'])->name('public.resume.preview');
+
+Route::get('/user/{username}/resume/download', [ResumePdfController::class, 'download'])->name('public.resume.download');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/settings.php';
