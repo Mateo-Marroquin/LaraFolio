@@ -31,7 +31,7 @@
                     {{ __('Métricas') }}
                 </flux:sidebar.item>
 
-                <flux:sidebar.item icon="envelope" :href="route('public.profile', $currentUsername)" :current="request()->routeIs('public.profile')">
+                <flux:sidebar.item icon="envelope" :href="route('public.contact', $currentUsername)" :current="request()->routeIs('public.contact')">
                     {{ __('Contactame') }}
                 </flux:sidebar.item>
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\GithubRepositoryController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GithubProfileController;
@@ -20,6 +21,10 @@ Route::get('/user/{username}', [GithubProfileController::class, 'showPublicProfi
 Route::get('/user/{username}/repositories', [GithubRepositoryController::class, 'showPublicRepositories'])->name('public.repositories');
 
 Route::get('/user/{username}/metrics', [MetricsController::class, 'index'])->name('metrics');
+
+Route::get('/user/{username}/contact', [ContactController::class, 'show'])->name('public.contact');
+
+Route::post('/user/{username}/contact', [ContactController::class, 'send'])->name('public.contact.send');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/settings.php';
