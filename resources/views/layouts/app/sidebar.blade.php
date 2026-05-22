@@ -50,7 +50,7 @@
         <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name"/>
     @else
         <div class="hidden lg:block px-4 py-3">
-            <flux:button variant="subtle" icon="cloud-arrow-down" href="#" class="w-full">
+            <flux:button variant="subtle" icon="cloud-arrow-down" href="{{route('auth.github.redirect')}}" class="w-full">
                 {{ __('Iniciar Sesión') }}
             </flux:button>
             <flux:button variant="subtle" icon="chevron-left" href="{{route('home')}}" class="w-full">

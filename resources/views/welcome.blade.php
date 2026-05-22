@@ -15,14 +15,18 @@
 </head>
 <body class="bg-[#FDFDFC] dark:bg-[#0a0a0a] text-zinc-900 dark:text-zinc-100 flex flex-col min-h-screen">
 
-<header class="w-full p-6 flex justify-end items-center absolute top-0 left-0 right-0">
+<header class="w-full p-6 flex justify-end items-center absolute top-0 left-0 right-0 gap-4">
+    <span class="hidden sm:inline text-xs md:text-sm text-zinc-500 dark:text-zinc-400 font-medium">
+        ¿Quieres acceder a más información de tu perfil?
+    </span>
+
     <flux:button
         variant="primary"
         icon="cloud-arrow-down"
         href="{{ route('auth.github.redirect') }}"
         class="shadow-sm"
     >
-        {{ __('Iniciar sesión con GitHub') }}
+        {{ __('Inicia sesión con GitHub') }}
     </flux:button>
 </header>
 
@@ -36,8 +40,8 @@
             <flux:heading size="xl" level="1" class="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight">
                 Explora el código detrás <br class="hidden sm:block" />
                 <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500 dark:from-blue-400 dark:to-indigo-400">
-                            del desarrollador.
-                        </span>
+                    del desarrollador.
+                </span>
             </flux:heading>
 
             <p class="text-lg md:text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
