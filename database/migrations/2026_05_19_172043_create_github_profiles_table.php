@@ -18,6 +18,10 @@ return new class extends Migration {
             $table->integer('public_repos')->default(0);
             $table->integer('followers')->default(0);
             $table->string('email')->nullable();
+            $table->string('company')->nullable();
+            $table->string('blog')->nullable();
+            $table->string('twitter_username')->nullable();
+            $table->boolean('hireable')->default(false);
             $table->timestamps();
             $table->softDeletes();
         });

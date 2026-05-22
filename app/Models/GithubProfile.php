@@ -21,7 +21,11 @@ class GithubProfile extends Model
         'public_repos',
         'followers',
         'user_id',
-        'email'
+        'email',
+        'company',
+        'blog',
+        'twitter_username',
+        'hireable'
     ];
 
     public function user(): BelongsTo

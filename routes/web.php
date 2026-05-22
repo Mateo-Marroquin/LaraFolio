@@ -10,12 +10,6 @@ use App\Http\Controllers\MetricsController;
 
 Route::view('/', 'welcome')->name('home');
 
-//Route::middleware(['auth', 'verified'])->group(function () {
-//    Route::view('dashboard', 'dashboard')->name('dashboard');
-//    Route::post('/github/import', [GithubProfileController::class, 'importProfile'])->name('import-profile');
-//    Route::get('/profile', [GithubProfileController::class, 'index'])->name('github-profile');
-//});
-
 Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('dashboard', function () {
@@ -30,11 +24,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return redirect()->route('public.profile', $username);
     })->name('dashboard');
 
-//    Route::post('/github/import', [GithubProfileController::class, 'importProfile'])->name('import-profile');
-//    Route::get('/profile', [GithubProfileController::class, 'index'])->name('github-profile');
 });
-
-Route::get('/search', [GithubProfileController::class, 'searchPublicProfile'])->name('profiles.search');
 
 Route::get('/user/{username}', [GithubProfileController::class, 'showPublicProfile'])->name('public.profile');
 
@@ -45,8 +35,6 @@ Route::get('/user/{username}/metrics', [MetricsController::class, 'index'])->nam
 Route::get('/user/{username}/contact', [ContactController::class, 'show'])->name('public.contact');
 
 Route::post('/user/{username}/contact', [ContactController::class, 'send'])->name('public.contact.send');
-
-//Route::get('/user/{username}/download-pdf', [ResumePdfController::class, 'download'])->name('public.download.pdf');
 
 Route::get('/user/{username}/resume', [ResumePdfController::class, 'showPreview'])->name('public.resume.preview');
 
