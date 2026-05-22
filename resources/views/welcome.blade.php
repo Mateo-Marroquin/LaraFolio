@@ -17,6 +17,28 @@
 
 <header class="w-full p-6 flex justify-end items-center absolute top-0 left-0 right-0 gap-4">
 
+    <div x-data="{}">
+        <flux:button
+            variant="subtle"
+            square
+            icon="moon"
+            class="hidden dark:inline-flex shadow-sm"
+            @click="localStorage.setItem('theme', 'dark'); document.documentElement.classList.add('dark'); window.dispatchEvent(new CustomEvent('theme-changed', { detail: 'dark' }))"
+            aria-label="{{ __('Cambiar a modo oscuro') }}"
+        />
+
+        <flux:button
+            variant="subtle"
+            square
+            icon="sun"
+            class="hidden dark:inline-flex shadow-sm"
+            @click="localStorage.setItem('theme', 'light'); document.documentElement.classList.remove('dark'); window.dispatchEvent(new CustomEvent('theme-changed', { detail: 'light' }))"
+            aria-label="{{ __('Cambiar a modo claro') }}"
+        />
+    </div>
+
+    <div class="h-4 w-px bg-zinc-200 dark:bg-zinc-800 hidden sm:block"></div>
+
     @auth
         <span class="hidden sm:inline text-xs md:text-sm text-zinc-500 dark:text-zinc-400 font-medium">
             {{ __('¡Hola de nuevo, :name!', ['name' => auth()->user()->name]) }}
