@@ -68,7 +68,7 @@ class GithubActivityController extends Controller
                 $provider = auth()->user()->githubProvider ?? UserProvider::where('user_id', auth()->id())->where('provider', 'github')->first();
                 if ($provider) {
                     $token = $provider->token;
-                    $url = "https://api.github.com/user/events";
+                    //$url = "https://api.github.com/user/events";
                 }
             }
 

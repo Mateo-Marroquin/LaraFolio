@@ -18,13 +18,11 @@ Route::view('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
-    // 🔀 Al loguearte, /dashboard te rebota automáticamente a tu portafolio público /user/tu-usuario
     Route::get('dashboard', function () {
         $user = Auth::user();
         $username = $user->githubProvider?->username
             ?? $user->githubProvider()->where('provider', 'github')->value('username');
 
-        //dd($user->load('githubProvider'));
         if (!$username) {
             return redirect()->route('home')->withErrors(['error' => 'No se encontró un perfil de GitHub vinculado.']);
         }

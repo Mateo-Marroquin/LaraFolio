@@ -163,38 +163,58 @@ class GithubProfileController extends Controller
     {
         session(['active_search_username' => $username]);
         $profileInfo = GithubProfile::where('username', $username)->first();
-        $isOld = $profileInfo && $profileInfo->updated_at->toDateTimeString() < now()->subDay()->toDateTimeString();
-
-        if (!$profileInfo || $isOld) {
-            $response = Http::withHeaders(['Accept' => 'application/vnd.github+json'])
-                ->withToken(config('services.github.token'))
-                ->get("https://api.github.com/users/{$username}");
-
-            if ($response->failed()) return redirect()->route('home')->with('error', 'Usuario no encontrado.');
-
-            $githubData = $response->json();
-            $profileInfo = GithubProfile::updateOrCreate(
-                ['username' => $githubData['login']],
-                [
-                    'github_id' => $githubData['id'],
-                    'name' => $githubData['name'] ?? null,
-                    'avatar_url' => $githubData['avatar_url'] ?? null,
-                    'bio' => $githubData['bio'] ?? null,
-                    'location' => $githubData['location'] ?? null,
-                    'public_repos' => $githubData['public_repos'] ?? 0,
-                    'followers' => $githubData['followers'] ?? 0,
-                    'email' => $githubData['email'] ?? null,
-                ]
-            );
-        }
-
-        $activityCOntroller = new GithubActivityController();
-        $activityCOntroller->syncGithubActivity($username);
-
         $isOwner = auth()->check() && (
                 auth()->user()->githubProvider?->username === $username ||
                 UserProvider::where('user_id', auth()->id())->where('provider', 'github')->where('username', $username)->exists()
             );
+        $userId = $isOwner ? auth()->id() : UserProvider::where('provider', 'github')->where('username', $username)->value('user_id');
+        $isOld = $profileInfo && $profileInfo->updated_at->toDateTimeString() < now()->subDay()->toDateTimeString();
+
+        $hasNoPrivateDataSynced = false;
+        if ($isOwner) {
+            $hasNoPrivateDataSynced = !GithubRepository::where('user_id', $userId)
+                ->where('is_private', true)
+                ->exists();
+        }
+
+        if (!$profileInfo || $isOld || $hasNoPrivateDataSynced) {
+
+            if (!$profileInfo || $isOld) {
+                $response = Http::withHeaders(['Accept' => 'application/vnd.github+json'])
+                    ->withToken(config('services.github.token'))
+                    ->get("https://api.github.com/users/{$username}");
+
+                if ($response->successful()) {
+                    $githubData = $response->json();
+                    $profileInfo = GithubProfile::updateOrCreate(
+                        ['username' => $githubData['login']],
+                        [
+                            'github_id' => $githubData['id'],
+                            'name' => $githubData['name'] ?? null,
+                            'avatar_url' => $githubData['avatar_url'] ?? null,
+                            'bio' => $githubData['bio'] ?? null,
+                            'location' => $githubData['location'] ?? null,
+                            'public_repos' => $githubData['public_repos'] ?? 0,
+                            'followers' => $githubData['followers'] ?? 0,
+                            'email' => $githubData['email'] ?? null,
+                        ]
+                    );
+                } elseif ($profileInfo) {
+                    $profileInfo->touch();
+                } else {
+                    return redirect()->route('home')->with('error', 'Usuario no encontrado.');
+                }
+
+            } else {
+                $profileInfo->touch();
+            }
+            $activityController = new GithubActivityController();
+            $activityController->syncGithubActivity($username);
+
+            $repositoriesController = new GithubRepositoryController();
+            $repositoriesController->syncRepositories($username, $userId);
+        }
+
         $privateReposCount = 0;
 
         if ($isOwner) {

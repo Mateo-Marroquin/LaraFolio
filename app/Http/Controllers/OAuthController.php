@@ -22,7 +22,7 @@ class OAuthController extends Controller
         try {
             $githubUser = Socialite::driver('github')->user();
         } catch (\Exception $e) {
-            return redirect()->route('login')->withErrors(['error' => 'Hubo un problema al autenticarte con GitHub.']);
+            return redirect()->route('home')->withErrors(['error' => 'Hubo un problema al autenticarte con GitHub.']);
         }
 
         $userProvider = UserProvider::where('provider', 'github')

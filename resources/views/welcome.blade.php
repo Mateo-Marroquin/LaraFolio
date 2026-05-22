@@ -52,6 +52,8 @@
             >
                 <div class="flex-1">
                     <flux:input
+                        name="username"
+                        autocomplete="username"
                         x-model="username"
                         icon="magnifying-glass"
                         placeholder="Ej. Mateo-Marroquin"
