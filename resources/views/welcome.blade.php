@@ -16,18 +16,36 @@
 <body class="bg-[#FDFDFC] dark:bg-[#0a0a0a] text-zinc-900 dark:text-zinc-100 flex flex-col min-h-screen">
 
 <header class="w-full p-6 flex justify-end items-center absolute top-0 left-0 right-0 gap-4">
-    <span class="hidden sm:inline text-xs md:text-sm text-zinc-500 dark:text-zinc-400 font-medium">
-        ¿Quieres acceder a más información de tu perfil?
-    </span>
 
-    <flux:button
-        variant="primary"
-        icon="cloud-arrow-down"
-        href="{{ route('auth.github.redirect') }}"
-        class="shadow-sm"
-    >
-        {{ __('Inicia sesión con GitHub') }}
-    </flux:button>
+    @auth
+        <span class="hidden sm:inline text-xs md:text-sm text-zinc-500 dark:text-zinc-400 font-medium">
+            {{ __('¡Hola de nuevo, :name!', ['name' => auth()->user()->name]) }}
+        </span>
+
+        <flux:button
+            variant="primary"
+            icon="user"
+            href="/user/{{ auth()->user()->githubProvider->username ?? auth()->user()->name }}"
+            class="shadow-sm"
+        >
+            {{ __('Ir a mi perfil') }}
+        </flux:button>
+    @endauth
+
+    @guest
+        <span class="hidden sm:inline text-xs md:text-sm text-zinc-500 dark:text-zinc-400 font-medium">
+            ¿Quieres acceder a más información de tu perfil?
+        </span>
+
+        <flux:button
+            variant="primary"
+            icon="cloud-arrow-down"
+            href="{{ route('auth.github.redirect') }}"
+            class="shadow-sm"
+        >
+            {{ __('Inicia sesión con GitHub') }}
+        </flux:button>
+    @endguest
 </header>
 
 <main class="flex-1 flex flex-col items-center justify-center w-full px-6 relative mt-16">

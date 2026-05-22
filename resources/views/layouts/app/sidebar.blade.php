@@ -7,7 +7,7 @@
 <flux:sidebar sticky collapsible="mobile"
               class="border-e border-zinc-200 bg-brand-accent dark:border-zinc-700 dark:bg-zinc-900 m-5 rounded-xl">
     <flux:sidebar.header>
-        <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate/>
+        <x-app-logo :sidebar="true" href="{{ route('home') }}" wire:navigate/>
         <flux:sidebar.collapse class="lg:hidden"/>
     </flux:sidebar.header>
 
