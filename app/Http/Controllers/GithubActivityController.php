@@ -89,7 +89,8 @@ class GithubActivityController extends Controller
                         [
                             'username' => $username,
                             'type' => $event['type'],
-                            'date' => $eventDate
+                            'date' => $eventDate,
+                            'is_private' => !$event['public']
                         ]
                     );
                 }

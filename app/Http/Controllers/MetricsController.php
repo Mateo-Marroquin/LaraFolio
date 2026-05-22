@@ -33,8 +33,17 @@ class MetricsController extends Controller
             ->select('repository_languages.name', DB::raw('SUM(repository_languages.bytes) as total_bytes'))
             ->where('github_repositories.full_name', 'like', $username . '/%');
 
+        $now = Carbon::now();
+        $startOfMonth = $now->copy()->startOfMonth()->toDateString();
+        $endOfMonth = $now->copy()->endOfMonth()->toDateString();
+
+        $activityQuery = GithubActivity::query()
+            ->where('username', $username)
+            ->whereBetween('date', [$startOfMonth, $endOfMonth]);
+
         if (!$isOwner) {
             $languagesQuery->where('github_repositories.is_private', false);
+            $activityQuery->where('is_private', false);
         }
 
         $languages = $languagesQuery->groupBy('repository_languages.name')
@@ -46,21 +55,14 @@ class MetricsController extends Controller
             'data' => $languages->pluck('total_bytes')->toArray(),
         ];
 
-        $now = Carbon::now();
-        $startOfMonth = $now->copy()->startOfMonth()->toDateString();
-        $endOfMonth = $now->copy()->endOfMonth()->toDateString();
-        $daysInMonth = $now->daysInMonth;
-
-        $activityData = GithubActivity::where('username', $username)
-            ->whereBetween('date', [$startOfMonth, $endOfMonth])
-            ->select(DB::raw('DATE(date) as clean_date'), DB::raw('count(*) as total'))
+        $activityData = $activityQuery->select(DB::raw('DATE(date) as clean_date'), DB::raw('count(*) as total'))
             ->groupBy('clean_date')
             ->get()
             ->pluck('total', 'clean_date');
 
         $activityLabels = [];
         $activityValues = [];
-
+        $daysInMonth = $now->daysInMonth;
         $year = $now->year;
         $month = sprintf('%02d', $now->month);
 

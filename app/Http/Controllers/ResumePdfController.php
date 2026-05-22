@@ -39,7 +39,7 @@ class ResumePdfController extends Controller
             ->where('github_repositories.full_name', 'like', $username . '/%');
 
         if (!$isOwner) {
-            $languagesQuery->where('github_repositories.is_private', false); // 🛡️ Ocultar bytes privados si es invitado
+            $languagesQuery->where('github_repositories.is_private', false);
         }
 
         $languages = $languagesQuery->groupBy('repository_languages.name')
@@ -69,9 +69,15 @@ class ResumePdfController extends Controller
         $endOfMonth = $now->copy()->endOfMonth()->toDateString();
         $daysInMonth = $now->daysInMonth;
 
-        $activityData = GithubActivity::where('username', $username)
-            ->whereBetween('date', [$startOfMonth, $endOfMonth])
-            ->select(DB::raw('DATE(date) as clean_date'), DB::raw('count(*) as total'))
+        $activityQuery = GithubActivity::query()
+            ->where('username', $username)
+            ->whereBetween('date', [$startOfMonth, $endOfMonth]);
+
+        if (!$isOwner) {
+            $activityQuery->where('is_private', false);
+        }
+
+        $activityData = $activityQuery->select(DB::raw('DATE(date) as clean_date'), DB::raw('count(*) as total'))
             ->groupBy('clean_date')
             ->get()
             ->pluck('total', 'clean_date');
@@ -123,7 +129,7 @@ class ResumePdfController extends Controller
             'username' => $username,
             'monthName' => $now->translatedFormat('F'),
             'date' => now()->format('d/m/Y'),
-            'repoLabel' => $repoLabel // 🌟 Pasado al arreglo de la vista
+            'repoLabel' => $repoLabel
         ];
 
         $pdf = Pdf::loadView('pdf.resume', $data)

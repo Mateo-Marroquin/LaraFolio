@@ -15,12 +15,14 @@ class GithubActivity extends Model
         'username',
         'type',
         'date',
+        'is_private'
     ];
 
     protected function casts(): array
     {
         return [
             'date' => 'date',
+            'is_private' => 'boolean'
         ];
     }
 }

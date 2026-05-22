@@ -13,6 +13,7 @@ return new class extends Migration {
             $table->string('username');
             $table->string('type');
             $table->date('date');
+            $table->boolean('is_private');
             $table->timestamps();
             $table->softDeletes();
             $table->index(['username', 'date']);
