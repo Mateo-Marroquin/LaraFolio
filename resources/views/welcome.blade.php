@@ -22,7 +22,7 @@
             variant="subtle"
             square
             icon="moon"
-            class="hidden dark:inline-flex shadow-sm"
+            class="dark:hidden shadow-sm"
             @click="localStorage.setItem('theme', 'dark'); document.documentElement.classList.add('dark'); window.dispatchEvent(new CustomEvent('theme-changed', { detail: 'dark' }))"
             aria-label="{{ __('Cambiar a modo oscuro') }}"
         />
@@ -113,8 +113,27 @@
             </form>
         </div>
 
-        <div class="pt-8 text-sm text-zinc-500 dark:text-zinc-500">
-            <p>No se requiere registro para consultar perfiles públicos.</p>
+        <div class="pt-6 max-w-md mx-auto text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+            @guest
+                <div class="flex items-center justify-center gap-2 bg-zinc-50 dark:bg-zinc-900/60 p-3 rounded-lg border border-zinc-200/40 dark:border-zinc-800/40 shadow-sm">
+                    <flux:icon name="information-circle" variant="mini" class="text-blue-500 shrink-0 size-4 mt-0.5" />
+                    <p>
+                        {{ __('Como invitado tienes un límite de 60 peticiones por hora. Para obtener consultas ilimitadas (5,000/hr) o indexar datos privados, por favor') }}
+                        <a href="{{ route('auth.github.redirect') }}" class="text-blue-600 dark:text-blue-400 font-semibold hover:underline">{{ __('inicia sesión con GitHub') }}</a>.
+                    </p>
+                </div>
+            @endguest
+
+            @auth
+                <div class="flex items-center justify-center gap-2 bg-emerald-50/40 dark:bg-emerald-950/20 p-3 rounded-lg border border-emerald-200/30 dark:border-emerald-900/20 shadow-sm">
+                    <flux:icon name="check-circle" variant="mini" class="text-emerald-500 shrink-0 size-4" />
+                    <p class="text-emerald-700 dark:text-emerald-400 font-medium">
+                        {{ __('Sesión activa: Disfrutas de una cuota ampliada de 5,000 peticiones por hora asociadas a tu cuenta.') }}
+                    </p>
+                </div>
+            @endauth
+
+            <p class="mt-4 opacity-75">{{ __('No se requiere registro para consultar catálogos públicos.') }}</p>
         </div>
     </div>
 </main>

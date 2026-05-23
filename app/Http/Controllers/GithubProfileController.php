@@ -86,9 +86,20 @@ class GithubProfileController extends Controller
         if (!$profileInfo || $isOld || $hasNoPrivateDataSynced) {
 
             if (!$profileInfo || $isOld) {
-                $response = Http::withHeaders(['Accept' => 'application/vnd.github+json'])
-                    ->withToken(config('services.github.token'))
-                    ->get("https://api.github.com/users/{$username}");
+
+                $requestRequest = Http::withHeaders([
+                    'Accept' => 'application/vnd.github+json'
+                ]);
+
+                $token = auth()->check()
+                    ? auth()->user()->githubProvider?->token
+                    : config('services.github.token');
+
+                if ($token) {
+                    $requestRequest->withToken($token);
+                }
+
+                $response = $requestRequest->get("https://api.github.com/users/{$username}");
 
                 if ($response->successful()) {
                     $githubData = $response->json();

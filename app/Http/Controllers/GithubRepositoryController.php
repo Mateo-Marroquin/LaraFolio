@@ -69,7 +69,7 @@ class GithubRepositoryController extends Controller
 
     public function syncRepositories($username, $userId = null)
     {
-        $token = config('services.github.token');
+        $token = null;
         $url = "https://api.github.com/users/{$username}/repos";
 
         if (!$userId) {
@@ -78,23 +78,33 @@ class GithubRepositoryController extends Controller
                 ->value('user_id');
         }
 
-        if (auth()->check() && auth()->id() == $userId) {
-            $provider = auth()->user()->githubProvider ?? \App\Models\UserProvider::where('user_id', auth()->id())->where('provider', 'github')->first();
-            if ($provider) {
-                $token = $provider->token;
-                $url = "https://api.github.com/user/repos";
+        if (auth()->check()) {
+            if (auth()->id() == $userId) {
+                $provider = auth()->user()->githubProvider ?? \App\Models\UserProvider::where('user_id', auth()->id())->where('provider', 'github')->first();
+                if ($provider) {
+                    $token = $provider->token;
+                    $url = "https://api.github.com/user/repos";
+                }
+            } else {
+                $token = auth()->user()->githubProvider?->token ?? config('services.github.token');
             }
+        } else {
+            $token = config('services.github.token');
         }
 
-        $response = Http::withHeaders([
+        $requestBuilder = Http::withHeaders([
             'Accept' => 'application/vnd.github+json',
-        ])
-            ->withToken($token)
-            ->get($url, [
-                'per_page' => 100,
-                'sort' => 'updated',
-                'type' => 'all'
-            ]);
+        ]);
+
+        if ($token) {
+            $requestBuilder->withToken($token);
+        }
+
+        $response = $requestBuilder->get($url, [
+            'per_page' => 100,
+            'sort' => 'updated',
+            'type' => 'all'
+        ]);
 
         if ($response->failed()) {
             Log::error("Fallo al consultar repositorios de GitHub para: {$username}", ['status' => $response->status()]);

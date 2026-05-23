@@ -59,7 +59,7 @@ class RepositoryLanguagesController extends Controller
             return false;
         }
 
-        $token = config('services.github.token');
+        $token = null;
         if ($userId) {
             $provider = UserProvider::where('user_id', $userId)->where('provider', 'github')->first();
             if ($provider) {
@@ -67,14 +67,24 @@ class RepositoryLanguagesController extends Controller
             }
         }
 
+        if (!$token) {
+            $token = auth()->check()
+                ? auth()->user()->githubProvider?->token ?? config('services.github.token')
+                : config('services.github.token');
+        }
+
         foreach ($repositories as $repo) {
             if (!$repo->languages_url) {
                 continue;
             }
 
-            $response = Http::withHeaders(['Accept' => 'application/vnd.github+json'])
-                ->withToken($token) // 🌟 Usamos el token dinámico
-                ->get($repo->languages_url);
+            $requestBuilder = Http::withHeaders(['Accept' => 'application/vnd.github+json']);
+
+            if ($token) {
+                $requestBuilder->withToken($token);
+            }
+
+            $response = $requestBuilder->get($repo->languages_url);
 
             if ($response->successful()) {
                 $languages = $response->json();
@@ -103,7 +113,7 @@ class RepositoryLanguagesController extends Controller
             return false;
         }
 
-        $token = config('services.github.token');
+        $token = null;
         if ($userId) {
             $provider = UserProvider::where('user_id', $userId)->where('provider', 'github')->first();
             if ($provider) {
@@ -111,14 +121,24 @@ class RepositoryLanguagesController extends Controller
             }
         }
 
+        if (!$token) {
+            $token = auth()->check()
+                ? auth()->user()->githubProvider?->token ?? config('services.github.token')
+                : config('services.github.token');
+        }
+
         foreach ($repositories as $repo) {
             if (!$repo->languages_url) {
                 continue;
             }
 
-            $response = Http::withHeaders(['Accept' => 'application/vnd.github+json'])
-                ->withToken($token)
-                ->get($repo->languages_url);
+            $requestBuilder = Http::withHeaders(['Accept' => 'application/vnd.github+json']);
+
+            if ($token) {
+                $requestBuilder->withToken($token);
+            }
+
+            $response = $requestBuilder->get($repo->languages_url);
 
             if ($response->successful()) {
                 $languages = $response->json();
@@ -134,7 +154,7 @@ class RepositoryLanguagesController extends Controller
                     ]);
                 }
             } else {
-                Log::error("Error al consultar lenguajes del repositorio ID {$repo->id}: " . $response->status());
+                Log::error("Error al conocer lenguajes del repositorio ID {$repo->id}: " . $response->status());
             }
         }
 
